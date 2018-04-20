@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-4.0.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+            http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+
+    <!-- 数据源配置文件-->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+		<list>
+            <value>classpath:config/hicore.properties</value>
+        </list>
+        </property>
+    </bean>
+
+    <!-- 数据源  -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+	    <property name="driverClassName" value="${db.driverClassName}"/>
+	    <property name="url" value="${db.driverUrl}"/>
+	    <property name="username" value="${db.username}"/>
+	    <property name="password" value="${db.password}"/>
+	</bean>
+
+
+    <!-- aop日志 -->
+    <bean id="logInterceptor" class="dao.common.LogInterceptor"></bean>
+    <aop:config proxy-target-class="true">
+        <aop:aspect id="logAspectSYS" ref="logInterceptor">
+            <aop:after-throwing method="throwing" throwing="ex" pointcut="execution(public * dao..*.*(..))" />
+        </aop:aspect>
+    </aop:config>
+    
+    <!-- 事务  -->  
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    	 <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED" rollback-for="RuntimeException" />
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="RuntimeException" />
+            <tx:method name="save*" propagation="REQUIRED" rollback-for="RuntimeException" />
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="RuntimeException" />
+            <tx:method name="do*" propagation="REQUIRED" rollback-for="RuntimeException" />
+        	<tx:method name="find*" read-only="true" rollback-for="RuntimeException" />
+        	<tx:method name="query*" read-only="true" rollback-for="RuntimeException" />
+        </tx:attributes>
+    </tx:advice>
+    
+    <aop:config>
+        <aop:pointcut id="pointCuts" expression="execution(* dao..*.*(..))" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pointCuts" /> 
+    </aop:config>
+
+    <context:component-scan  base-package="dao.service"/>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="configLocation" value="classpath:config/mybaits/mybatis-config.xml" />
+        <property name="mapperLocations" value="classpath:config/mybaits/*mapper.xml" />
+    </bean>
+
+    <bean name="User_Dao" class="dao.service.impl.User_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+
+    <bean name="Html_main_nav_Dao" class="dao.service.impl.Html_main_nav_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Html_sub_nav_Dao" class="dao.service.impl.Html_sub_nav_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Html_lib_js_Dao" class="dao.service.impl.Html_lib_js_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Html_lib_css_Dao" class="dao.service.impl.Html_lib_css_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Html_base_Dao" class="dao.service.impl.Html_base_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Html_carousel_Dao" class="dao.service.impl.Html_carousel_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Html_carousel_item_Dao" class="dao.service.impl.Html_carousel_item_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Visitor_info_Dao" class="dao.service.impl.Visitor_info_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Product_Dao" class="dao.service.impl.Product_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="Solution_Dao" class="dao.service.impl.Solution_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+    <bean name="UserAction" class="action.admin.Index" ></bean>
+    <bean name="Company_Dao" class="dao.service.impl.Company_Dao" >
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+    </bean>
+</beans>
